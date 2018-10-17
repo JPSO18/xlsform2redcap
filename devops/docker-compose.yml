@@ -1,0 +1,17 @@
+version: "3"
+services:
+  erlang_elixir:
+    image: elixir:1.6.0
+    working_dir: /opt/app
+    command: /bin/bash -c "
+      /usr/local/bin/mix deps.get;
+      /usr/local/bin/mix deps.update;
+      /usr/local/bin/mix deps.compile;
+      /bin/bash;"
+    volumes:
+      - ../:/opt/app
+    ports:
+      - "4000:4000"
+    logging:
+      driver: syslog
+    stdin_open: true

@@ -1,0 +1,11 @@
+%{
+  "csv": {:hex, :csv, "2.0.0", "c66fea89ba7862b94901baf0871285e9b73cad89c5fdb57a6386d2adcf29593e", [:mix], [{:parallel_stream, "~> 1.0.4", [hex: :parallel_stream, repo: "hexpm", optional: false]}], "hexpm"},
+  "earmark": {:hex, :earmark, "1.2.6", "b6da42b3831458d3ecc57314dff3051b080b9b2be88c2e5aa41cd642a5b044ed", [:mix], [], "hexpm"},
+  "erlsom": {:hex, :erlsom, "1.4.2", "5cddb82fb512f406f61162e511ae86582f824f0dccda788378b18a00d89c1b3f", [:rebar3], [], "hexpm"},
+  "ex_doc": {:hex, :ex_doc, "0.18.4", "4406b8891cecf1352f49975c6d554e62e4341ceb41b9338949077b0d4a97b949", [:mix], [{:earmark, "~> 1.1", [hex: :earmark, repo: "hexpm", optional: false]}], "hexpm"},
+  "exoffice": {:hex, :exoffice, "0.2.0", "0f1ca416d952caa3a598cb97c6c8d9c76bc4bafe85a5e5415ea7b207d96be7d7", [:mix], [{:csv, "~> 2.1", [hex: :csv, repo: "hexpm", optional: false]}, {:earmark, "~> 1.0", [hex: :earmark, repo: "hexpm", optional: false]}, {:ex_doc, "~> 0.18.3", [hex: :ex_doc, repo: "hexpm", optional: false]}, {:iconv, "~> 1.0", [hex: :iconv, repo: "hexpm", optional: false]}, {:xlsxir, "~> 1.6", [hex: :xlsxir, repo: "hexpm", optional: false]}], "hexpm"},
+  "iconv": {:hex, :iconv, "1.0.8", "772a19153e9546b9f17206931ece321220feccfd0b3f5a5509dc92108326c2f9", [:rebar3], [{:p1_utils, "1.0.12", [hex: :p1_utils, repo: "hexpm", optional: false]}], "hexpm"},
+  "p1_utils": {:hex, :p1_utils, "1.0.12", "4304223a2b78d8031e980ae18d6b6d83f764cf2a91c779b2df7cbdfde73acbf8", [:rebar3], [], "hexpm"},
+  "parallel_stream": {:hex, :parallel_stream, "1.0.6", "b967be2b23f0f6787fab7ed681b4c45a215a81481fb62b01a5b750fa8f30f76c", [:mix], [], "hexpm"},
+  "xlsxir": {:hex, :xlsxir, "1.6.2", "18459faf8009d78363bdee1948a0f25631aec604d70d343fc3ad3c22c2a8df77", [:mix], [{:erlsom, "~> 1.4", [hex: :erlsom, repo: "hexpm", optional: false]}], "hexpm"},
+}
