@@ -1,5 +1,7 @@
 defmodule Redcap.XLSXFormDecoder do
 
+    @not_allowed_chars ["/", "-"]
+
     defstruct [:row_number, :content, :indexes]
 
     def build_struct(row) do
@@ -51,6 +53,16 @@ defmodule Redcap.XLSXFormDecoder do
     def parse_choices([choice_name, value, label | _tail], map), do: parse_choices([choice_name, value, label], map)
 
     defp concat_choices(string, value, label) do
+        value =
+            if is_binary(value) do
+                value
+                |> String.normalize(:nfd)
+                |> String.replace(~r/[^A-z\s0-9]/u, "")
+                |> String.replace(@not_allowed_chars, "_")
+            else
+                value
+            end
+
         string <> "#{value}" <> ", " <> "#{label}" <> "|"
     end
 

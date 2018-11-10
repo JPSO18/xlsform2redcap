@@ -1,6 +1,10 @@
 defmodule RedcapEncoder do
 
-    @relevant_regex
+    @initial_dolar_brace ~r/\${/
+    @final_brace ~r/}/
+    @not_selected_regex ~r/not selected(.+,.+)/
+    @selected_regex ~r/selected\((.+), ?(.+)\)/
+    @pow_regex ~r/pow\((.+?), ?(.+?)\)/
 
     @csv_header [:"Variable / Field Name", :"Form Name", :"Section Header", :"Field Type",
                :"Field Label", :"Choices, Calculations, OR Slider Labels", :"Field Note",
@@ -13,52 +17,120 @@ defmodule RedcapEncoder do
 
     def list_csv_headers, do: @csv_header
 
+    def build_struct_from_encoder(%{content: content}, choices, "note") do
+        %__MODULE__{"Variable / Field Name": content.name, "Field Type": "descriptive",
+                    "Field Label": content.label |> translate_get_fields(), "Form Name": choices[:form_name],
+                    "Branching Logic (Show field only if...)": content.relevant |> translate_get_fields() |> translate_relevant()}
+    end
+    
+    def build_struct_from_encoder(%{content: content}, choices, "image") do
+        %__MODULE__{"Variable / Field Name": content.name, "Field Type": "file",
+        "Field Label": content.label, "Form Name": choices[:form_name], "Field Note": content.hint,
+        "Required Field?": content.required |> required_field(),
+        "Branching Logic (Show field only if...)": content.relevant |> translate_get_fields() |> translate_relevant()}
+    end
+
     def build_struct_from_encoder(%{content: content}, choices, "text") do
         %__MODULE__{"Variable / Field Name": content.name, "Field Type": content.type,
                     "Field Label": content.label, "Form Name": choices[:form_name], "Field Note": content.hint,
-                    "Required Field?": content.required, "Branching Logic (Show field only if...)": content.relevant |> tranlate_relevant()}
+                    "Required Field?": content.required |> required_field(),
+                    "Branching Logic (Show field only if...)": content.relevant |> translate_get_fields() |> translate_relevant()}
     end
 
     def build_struct_from_encoder(%{content: content}, choices, "integer") do
         %__MODULE__{"Variable / Field Name": content.name, "Field Type": "text",
                     "Field Label": content.label, "Form Name": choices[:form_name], "Field Note": content.hint,
                     "Text Validation, Type OR Show Slider Number": "integer",
-                    "Required Field?": content.required |> required_field}
+                    "Required Field?": content.required |> required_field,
+                    "Branching Logic (Show field only if...)": content.relevant |> translate_get_fields() |> translate_relevant()}
     end
 
     def build_struct_from_encoder(%{content: content}, choices, "decimal") do
         %__MODULE__{"Variable / Field Name": content.name, "Field Type": "text",
                     "Field Label": content.label, "Form Name": choices[:form_name], "Field Note": content.hint,
                     "Text Validation, Type OR Show Slider Number": "number",
-                    "Required Field?": content.required |> required_field}
+                    "Required Field?": content.required |> required_field,
+                    "Branching Logic (Show field only if...)": content.relevant |> translate_get_fields() |> translate_relevant()}
     end
 
     def build_struct_from_encoder(%{content: content}, choices, "date") do
         %__MODULE__{"Variable / Field Name": content.name, "Field Type": "text",
                     "Field Label": content.label, "Form Name": choices[:form_name], "Field Note": content.hint,
                     "Text Validation, Type OR Show Slider Number": "date_dmy",
-                    "Required Field?": content.required |> required_field}
+                    "Required Field?": content.required |> required_field,
+                    "Branching Logic (Show field only if...)": content.relevant |> translate_get_fields() |> translate_relevant()}
     end
 
-    def build_struct_from_encoder(%{content: content}, choices, "select_one " <> choice) do
-        %__MODULE__{"Variable / Field Name": content.name, "Field Type": "dropdown",
-                    "Field Label": content.label, "Form Name": choices[:form_name], "Field Note": content.hint,
-                    "Choices, Calculations, OR Slider Labels": choices[:"#{choice}"],
-                    "Required Field?": content.required |> required_field}
-    end
+    def build_struct_from_encoder(%{content: content}, choices, "select_" <> choice),
+        do: build_struct_from_select(content, choices, choice |> String.trim_leading("_"))
+    def build_struct_from_encoder(%{content: content}, choices, "select " <> choice),
+        do: build_struct_from_select(content, choices, choice |> String.trim_leading())
 
-    def build_struct_from_encoder(%{content: content}, choices, "select_multiple " <> choice) do
-        %__MODULE__{"Variable / Field Name": content.name, "Field Type": "checkbox",
+    def build_struct_from_encoder(%{content: content}, choices, "calculate") do
+        %__MODULE__{"Variable / Field Name": content.name, "Field Type": "calc",
                     "Field Label": content.label, "Form Name": choices[:form_name], "Field Note": content.hint,
-                    "Choices, Calculations, OR Slider Labels": choices[:"#{choice}"],
-                    "Required Field?": content.required |> required_field}
+                    "Choices, Calculations, OR Slider Labels": content.calculation |> translate_get_fields() |> translate_calc(),
+                    "Required Field?": content.required |> required_field,
+                    "Branching Logic (Show field only if...)": content.relevant |> translate_get_fields() |> translate_relevant()}
     end
 
     def build_struct_from_encoder(_, _, _struct) do
         nil
     end
 
-    defp tranlate_relevant(relevant) when is_binary(relevant) do
+    defp build_struct_from_select(content, choices, "one" <> choice) do
+        choice = choice |> String.trim_leading()
+        %__MODULE__{"Variable / Field Name": content.name, "Field Type": "dropdown",
+                    "Field Label": content.label, "Form Name": choices[:form_name], "Field Note": content.hint,
+                    "Choices, Calculations, OR Slider Labels": choices[:"#{choice}"],
+                    "Required Field?": content.required |> required_field,
+                    "Branching Logic (Show field only if...)": content.relevant |> translate_get_fields() |> translate_relevant()}
+    end
+
+    defp build_struct_from_select(content, choices, "multiple" <> choice) do
+        choice = choice |> String.trim_leading()
+        %__MODULE__{"Variable / Field Name": content.name, "Field Type": "checkbox",
+                    "Field Label": content.label, "Form Name": choices[:form_name], "Field Note": content.hint,
+                    "Choices, Calculations, OR Slider Labels": choices[:"#{choice}"],
+                    "Required Field?": content.required |> required_field,
+                    "Branching Logic (Show field only if...)": content.relevant |> translate_get_fields() |> translate_relevant()}
+    end
+
+    defp translate_get_fields(nil), do: nil
+    defp translate_get_fields(string) when is_binary(string) do
+        rel_mod = Regex.replace(@initial_dolar_brace, string, "[")
+        Regex.replace(@final_brace, rel_mod, "]")
+        # |> change_simple_quote()
+    end
+
+    defp translate_relevant(nil), do: nil
+    defp translate_relevant(relevant) do
+        relevant
+        |> relevant_chooser(@not_selected_regex)
+        |> relevant_chooser(@selected_regex)
+    end
+
+    defp relevant_chooser(relevant, regex) do
+        Regex.replace(regex, relevant, fn _n, field_name, choice ->
+            String.replace(field_name, "]", "(#{choice})]=1")
+        end)
+    end
+
+    defp translate_calc(calc) do
+        calc
+        |> String.replace("div", "/")
+        |> calc_regex()
+    end
+
+    defp calc_regex(calc) do
+        Regex.replace(@pow_regex, calc,
+            fn _, number, pow ->
+                number <> "^" <> pow
+            end)
+    end
+
+    defp change_simple_quote(string) do
+        string |> String.replace("'", "\"")
     end
 
     defp required_field("yes"), do: "Y"

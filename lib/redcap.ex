@@ -24,7 +24,7 @@ defmodule Redcap do
     defp do_parse([{:ok, worksheet}, {:ok, worksheet_2}, {:ok, worksheet_3}]) do
         worksheet_1 = worksheet |> Xlsxir.get_list()
         worksheet_2 = worksheet_2 |> Xlsxir.get_list()
-        [_form_name, [form_name, file_name, _]] = worksheet_3 |> Xlsxir.get_list()
+        [_form_name, [form_name, _file_name, _]] = worksheet_3 |> Xlsxir.get_list()
         form_name = form_name
                     |> String.downcase()
                     |> String.normalize(:nfd)
@@ -33,7 +33,7 @@ defmodule Redcap do
 
         struct_1 = worksheet_1 |> List.first() |> XFD.build_struct()
 
-        file =  File.open!("#{file_name}.csv", [:write, :utf8])
+        file =  File.open!("datadic.csv", [:write, :utf8, :append])
 
         choices_map =
             worksheet_2
@@ -49,7 +49,6 @@ defmodule Redcap do
         |> Enum.filter(fn n -> n != nil end)
         |> CSV.encode(headers: RedcapEncoder.list_csv_headers)
         |> Enum.each(&IO.write(file, &1))
-        # [worksheet_2 |> Xlsxir.get_list(), worksheet_3 |> Xlsxir.get_list()]
     end
 
     defp do_parse({:error, reason}) do
