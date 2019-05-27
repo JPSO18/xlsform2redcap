@@ -28,3 +28,7 @@ use Mix.Config
 # here (which is why it is important to import them last).
 #
 #     import_config "#{Mix.env}.exs"
+
+config :redcap,
+  data_guide_path: "priv/data_guide/odk2redcapfinalguide.csv",
+  record_identifier: "id_paciente"
