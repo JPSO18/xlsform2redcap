@@ -17,11 +17,11 @@ defmodule Redcap do
     @first_column 0
     @second_column 1
     @event_field "redcap_event_name"
-    @default_event "pre_redcap_arm_1"
+    @default_event "tratamento_tb_arm_1"
     @events_map %{
       "M0" => "triagem_arm_1",
-      "M1" => "mes_1_arm_1",
-      "M2" => "mes_2_arm_1",
+      "M1" => "visita_mes_1_arm_1",
+      "M2" => "visita_mes_2_arm_1",
       "END" => "visita_end_arm_1",
       "OFF" => "visita_off_arm_1",
       @event_field => @event_field
