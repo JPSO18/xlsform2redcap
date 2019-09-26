@@ -4,9 +4,15 @@ defmodule Redcap.MixProject do
   def project do
     [
       app: :redcap,
+      name: "Xlsform2Redcap",
+      source_url: "https://github.com/JPSO18/redcap",
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
+      docs: [
+        main: "Redcap",
+        extras: ["README.md"]
+      ],
       deps: deps()
     ]
   end
@@ -23,7 +29,7 @@ defmodule Redcap.MixProject do
   defp deps do
     [
         {:xlsxir, "~> 1.6.2"},
-        {:csv, "~> 2.0.0"}
+        {:ex_doc, "~> 0.18.0", only: :dev, runtime: false}
     ]
   end
 end

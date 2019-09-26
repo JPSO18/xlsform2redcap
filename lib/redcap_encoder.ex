@@ -1,4 +1,8 @@
 defmodule RedcapEncoder do
+    @moduledoc """
+    Neste módulo é onde acontece a codificação dos valores extraidos de um arquivo xlsform para a
+    linguagem implementada pelo Redcap em seu data dictionary.
+    """
 
     @initial_dolar_brace ~r/\${/
     @final_brace ~r/}/
@@ -12,17 +16,34 @@ defmodule RedcapEncoder do
                :"Text Validation Max", :"Identifier?", :"Branching Logic (Show field only if...)",
                :"Required Field?", :"Custom Alignment", :"Question Number (surveys only)",
                :"Matrix Group Name", :"Matrix Ranking?", :"Field Annotation"]
+    @doc """
+    Cria uma estrutura para o cabeçalho utilizado no data dictionary
 
+    Retorns `%RedcapEncoder{ campos }`
+    """
     defstruct @csv_header
 
+    @doc """
+    Retorna lista de campos do data dictionary
+
+    Returns `List`
+    """
     def list_csv_headers, do: @csv_header
 
+    @doc """
+    Nesta função é onde linha a linha do xlsform é traduzida para cada tipo de campo do Redcap, ou
+    o mais próximo disso dentro do universo do Redcap. Cada uma das funções cuida de um 'type'
+    específico do xlsform fazendo os tratamentos necessários para a tradução desse 'type' para um
+    'FieldType' do Redcap.
+
+    Returns `%RedcapEncoder{ campos }`
+    """
     def build_struct_from_encoder(%{content: content}, choices, "note") do
         %__MODULE__{"Variable / Field Name": content.name, "Field Type": "descriptive",
                     "Field Label": content.label |> translate_get_fields(), "Form Name": choices[:form_name],
                     "Branching Logic (Show field only if...)": content.relevant |> translate_get_fields() |> translate_relevant()}
     end
-    
+
     def build_struct_from_encoder(%{content: content}, choices, "image") do
         %__MODULE__{"Variable / Field Name": content.name, "Field Type": "file",
         "Field Label": content.label, "Form Name": choices[:form_name], "Field Note": content.hint,
@@ -137,5 +158,4 @@ defmodule RedcapEncoder do
     defp required_field("Yes"), do: "Y"
     defp required_field("YES"), do: "Y"
     defp required_field(_), do: nil
-
 end
