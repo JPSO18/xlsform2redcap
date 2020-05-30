@@ -19,8 +19,8 @@ defmodule Redcap do
     @default_event "tratamento_tb_arm_1"
     @events_map %{
       "M0" => "triagem_arm_1",
-      "M1" => "visita_mes_1_arm_1",
-      "M2" => "visita_mes_2_arm_1",
+      "M1" => "mes_1_arm_1",
+      "M2" => "mes_2_arm_1",
       "END" => "visita_end_arm_1",
       "OFF" => "visita_off_arm_1",
       @event_field => @event_field
@@ -82,7 +82,7 @@ defmodule Redcap do
     def migrate_data_in_folder(folder_path \\ "./priv/before_data") do
       Path.wildcard(folder_path <> "/*.csv")
       |> Enum.each(fn data_path ->
-        file_name = "priv/after_data/" <> "import_" <> (String.split(data_path, "/") |> List.last())
+        file_name = "priv/after_data/" <> (String.split(data_path, "/") |> List.last())
         migrate_data_odk_to_redcap(data_path, file_name)
       end)
     end
@@ -151,6 +151,7 @@ defmodule Redcap do
       Enum.map(records, &change_element_index_in_list(&1, identifier_index, @first_column))
     end
 
+    defp change_element_index_in_list(list, nil, _intended_index), do: list
     defp change_element_index_in_list(list, present_index, intended_index) do
       list
       |> List.delete_at(present_index)
@@ -164,6 +165,7 @@ defmodule Redcap do
       end)
     end
 
+    defp check_redcap_event([]), do: []
     defp check_redcap_event(records) do
       records
       |> List.first()
@@ -250,7 +252,7 @@ defmodule Redcap do
       else
         value
         |> String.normalize(:nfd)
-        |> String.replace(~r/[^A-z\s0-9]/u, "")
+        |> String.replace(~r/[^A-z\s0-9.]/u, "")
         |> String.replace(@not_allowed_chars, "_")
       end
     end

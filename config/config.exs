@@ -30,5 +30,5 @@ use Mix.Config
 #     import_config "#{Mix.env}.exs"
 
 config :redcap,
-  data_guide_path: "priv/data_guide/odk2redcapfinalguide.csv",
+  data_guide_path: "priv/xlsform2redcap_data_guide/odk2redcapfinalguide.csv",
   record_identifier: "id_paciente"

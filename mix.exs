@@ -29,6 +29,7 @@ defmodule Redcap.MixProject do
   defp deps do
     [
         {:xlsxir, "~> 1.6.2"},
+        {:csv, "~> 2.0.0"},
         {:ex_doc, "~> 0.18.0", only: :dev, runtime: false}
     ]
   end
